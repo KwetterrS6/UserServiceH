@@ -9,18 +9,17 @@ namespace UserService.Data
 {
     public static class PrepDb
     {
-        public static void PrepPopulation(IApplicationBuilder app, bool isProd)
+        public static void PrepPopulation(IApplicationBuilder app)
         {
             using( var serviceScope = app.ApplicationServices.CreateScope())
             {
-                SeedData(serviceScope.ServiceProvider.GetService<AppDbContext>(), isProd);
+                SeedData(serviceScope.ServiceProvider.GetService<AppDbContext>());
             }
         }
 
-        private static void SeedData(AppDbContext context, bool isProd)
+        private static void SeedData(AppDbContext context)
         {
-            if(isProd)
-            {
+            
                 Console.WriteLine("--> Attempting to apply migrations...");
                 try
                 {
@@ -29,25 +28,7 @@ namespace UserService.Data
                 catch(Exception ex)
                 {
                     Console.WriteLine($"--> Could not run migrations: {ex.Message}");
-                }
-            }
-            
-            if(!context.Users.Any())
-            {
-                Console.WriteLine("--> Seeding Data...");
-
-                context.Users.AddRange(
-                    new User() {Name="Dot Net", Email="Microsoft", Password="Free"},
-                    new User() {Name="SQL Server Express", Email="Microsoft",  Password="Free"},
-                    new User() {Name="Kubernetes", Email="Cloud Native Computing Foundation",  Password="Free"}
-                );
-
-                context.SaveChanges();
-            }
-            else
-            {
-                Console.WriteLine("--> We already have data");
-            }
+                }     
         }
     }
 }

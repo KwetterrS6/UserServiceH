@@ -7,7 +7,6 @@ using UserService.AsyncDataServices;
 using UserService.Data;
 using UserService.Dtos;
 using UserService.Models;
-using UserService.SyncDataServices.Http;
 
 namespace UserService.Controllers
 {
@@ -17,18 +16,15 @@ namespace UserService.Controllers
     {
         private readonly IUserRepo _repository;
         private readonly IMapper _mapper;
-        private readonly IKweetDataClient _kweetDataClient;
         private readonly IMessageBusClient _messageBusClient;
 
         public UsersController(
             IUserRepo repository, 
             IMapper mapper,
-            IKweetDataClient kweetDataClient,
             IMessageBusClient messageBusClient)
         {
             _repository = repository;
             _mapper = mapper;
-            _kweetDataClient = kweetDataClient;
             _messageBusClient = messageBusClient;
         }
 
@@ -69,20 +65,11 @@ namespace UserService.Controllers
             }
            
             var UserReadDto = _mapper.Map<UserReadDto>(userModel);
-            // Send Sync Message
-            try
-            {
-                await _kweetDataClient.SendUserToKweet(UserReadDto);
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine($"--> Could not sendsdfsdfsdf synchronously: {ex.Message}");
-            }
 
-            //Send Async Message
             try
             {
                 var userCreatedDto = _mapper.Map<UserCreatedDto>(UserReadDto);
+                userCreatedDto.Event = "User_Created";
                 _messageBusClient.CreateNewUser(userCreatedDto);
             }
             catch (Exception ex)

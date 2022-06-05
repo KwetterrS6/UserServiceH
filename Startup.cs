@@ -16,8 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using UserService.AsyncDataServices;
 using UserService.Data;
-using UserService.SyncDataServices.Grpc;
-using UserService.SyncDataServices.Http;
+
 
 namespace UserService
 {
@@ -35,22 +34,13 @@ namespace UserService
 
         public void ConfigureServices(IServiceCollection services)
         {
-            if (_env.IsProduction())
-            {
+           
                 Console.WriteLine("--> Using SqlServer Db");
                 services.AddDbContext<AppDbContext>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("UsersConn")));
-            }
-            else
-            {
-                Console.WriteLine("--> Using InMem Db");
-                services.AddDbContext<AppDbContext>(options =>
-                     options.UseInMemoryDatabase("InMem"));
-            }
-
+                   options.UseSqlServer(Configuration.GetConnectionString("UsersConn")));
+   
             services.AddScoped<IUserRepo, UserRepo>();
 
-            services.AddHttpClient<IKweetDataClient, HttpKweetDataClient>();
             services.AddSingleton<IMessageBusClient, MessageBusClient>();
             services.AddGrpc();
             services.AddControllers();
@@ -83,7 +73,6 @@ namespace UserService
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapGrpcService<GrpcUserService>();
 
                 endpoints.MapGet("/protos/users.proto", async context =>
                 {
@@ -92,7 +81,7 @@ namespace UserService
             });
 
 
-            PrepDb.PrepPopulation(app, env.IsProduction());
+            PrepDb.PrepPopulation(app);
 
         }
     }
